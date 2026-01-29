@@ -7,26 +7,43 @@
     <style>
         body { margin: 0; overflow: hidden; position: fixed; width: 100%; height: 100%; background-color: #000; }
         
-        /* Top Instruction Overlay */
-        #instruction {
-            position: fixed; top: 20px; width: 100%; text-align: center;
-            z-index: 999; color: rgba(255,255,255,0.8); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            letter-spacing: 1px; pointer-events: none;
+        /* Dynamic Status Bar */
+        #status-bar {
+            position: fixed; top: 30px; width: 100%; text-align: center;
+            z-index: 999; color: #fff; font-family: 'Segoe UI', Roboto, sans-serif;
+            text-transform: uppercase; letter-spacing: 2px; font-weight: bold;
+            text-shadow: 0 0 10px rgba(0,255,255,0.7); pointer-events: none;
+            transition: all 0.3s ease;
         }
 
-        /* Your Personal Signature at the bottom */
-        #signature {
-            position: fixed; bottom: 15px; width: 100%; text-align: center;
-            z-index: 999; color: rgba(255,255,255,0.6); font-family: 'Georgia', serif;
-            font-size: 12px; font-style: italic; letter-spacing: 0.5px;
-            pointer-events: none;
+        /* Sub-text for sound */
+        #sub-text {
+            font-size: 10px; font-weight: normal; color: rgba(255,255,255,0.6);
+            display: block; margin-top: 5px;
+        }
+
+        /* Creative Signature: With Glow & Better Font */
+        #signature-container {
+            position: fixed; bottom: 30px; width: 100%; text-align: center;
+            z-index: 999; pointer-events: none;
+        }
+        .signature-text {
+            font-family: 'Brush Script MT', cursive, serif;
+            font-size: 24px; color: #fff;
+            text-shadow: 0 0 8px rgba(255, 105, 180, 0.8), 0 0 20px rgba(255, 105, 180, 0.4);
+            display: inline-block;
         }
     </style>
 </head>
 <body>
-    <div id="instruction">Scan the photo to reveal the magic...<br><small>(Tap for sound)</small></div>
+    <div id="status-bar">
+        <span id="main-text">Scanning for Photo...</span>
+        <span id="sub-text">Tap anywhere for sound 🔊</span>
+    </div>
     
-    <div id="signature">With love from Sathya ❤️</div>
+    <div id="signature-container">
+        <div class="signature-text">With love from Sathya ❤️</div>
+    </div>
 
     <a-scene 
         mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiLoading: no; uiScanning: yes;" 
@@ -47,23 +64,31 @@
     <script>
         const videoEl = document.querySelector('#arVideo');
         const anchor = document.querySelector('#targetAnchor');
-        const instruction = document.querySelector('#instruction');
+        const mainText = document.querySelector('#main-text');
+        const statusBar = document.querySelector('#status-bar');
 
-        // Automatic playback when the photo is recognized
+        // Logic for when the photo is found
         anchor.addEventListener("targetFound", () => {
             videoEl.play();
-            instruction.style.opacity = "0.3"; // Dim instructions when magic happens
+            mainText.innerHTML = "Photo Found! ✨";
+            statusBar.style.color = "#00ffcc"; // Changes text color to a nice teal when found
+            statusBar.style.textShadow = "0 0 15px rgba(0,255,204,0.9)";
         });
 
-        // Pause when the camera loses the photo
+        // Logic for when the photo is lost
         anchor.addEventListener("targetLost", () => {
             videoEl.pause();
-            instruction.style.opacity = "1";
+            mainText.innerHTML = "Scanning for Photo...";
+            statusBar.style.color = "#fff";
+            statusBar.style.textShadow = "0 0 10px rgba(0,255,255,0.7)";
         });
 
-        // Unmute audio on the first user interaction
+        // Handle the tap for unmuting
         document.body.addEventListener('click', () => {
             videoEl.muted = false;
+            document.querySelector('#sub-text').innerHTML = "Sound On 🔊";
+            // Briefly fade the sub-text away
+            setTimeout(() => { document.querySelector('#sub-text').style.opacity = "0"; }, 2000);
         });
     </script>
 </body>
