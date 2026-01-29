@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+    <style>
+      body { margin: 0; overflow: hidden; }
+      #overlay {
+        position: fixed; top: 10px; width: 100%; text-align: center;
+        z-index: 10; color: white; font-family: Arial, sans-serif;
+        text-shadow: 0 0 5px black;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="overlay">Point at the photo and <br><b>TAP SCREEN TO START</b></div>
+
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiLoading: no; uiError: no; uiScanning: no;" 
+             vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+      
+      <a-assets>
+        <video id="myVideo" src="./video.mp4" loop="true" crossorigin="anonymous" playsinline muted></video>
+      </a-assets>
+
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+      <a-entity mindar-image-target="targetIndex: 0">
+        <a-video src="#myVideo" position="0 0 0" height="1" width="0.5625" rotation="0 0 0"></a-video>
+      </a-entity>
+    </a-scene>
+
+    <script>
+      // Crucial: Browsers require a user click to play video with sound/auto
+      document.body.addEventListener('click', () => {
+        const video = document.querySelector("#myVideo");
+        video.play();
+        document.getElementById('overlay').style.display = 'none';
+      });
+    </script>
+  </body>
+</html>
