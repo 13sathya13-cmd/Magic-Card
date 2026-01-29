@@ -6,25 +6,21 @@
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
     <style>
         body { margin: 0; overflow: hidden; position: fixed; width: 100%; height: 100%; }
-        /* Forces the AR camera to actually fill the vertical screen */
-        .mindar-ui-overlay { z-index: 100; }
-        #instruction {
-            position: fixed; top: 10px; width: 100%; text-align: center;
+        #overlay {
+            position: fixed; top: 20px; width: 100%; text-align: center;
             z-index: 999; color: white; font-family: sans-serif;
-            background: rgba(0,0,0,0.6); padding: 10px 0;
+            background: rgba(0,0,0,0.5); padding: 10px 0;
+            pointer-events: none; /* Allows clicking through to the scene */
         }
     </style>
 </head>
 <body>
-    <div id="instruction">1. Allow Camera <br> 2. Scan Photo & Tap Screen</div>
+    <div id="overlay">Scanning for Photo...<br>(Tap once for sound)</div>
 
     <a-scene 
         mindar-image="imageTargetSrc: ./targets.mind; autoStart: true; uiLoading: no; uiScanning: yes;" 
-        embedded 
-        color-space="sRGB" 
-        renderer="colorManagement: true, physicallyCorrectLights" 
-        vr-mode-ui="enabled: false" 
-        device-orientation-permission-ui="enabled: false">
+        embedded color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" 
+        vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
         
         <a-assets>
             <video id="arVideo" src="./video.mp4" preload="auto" loop="true" crossorigin="anonymous" playsinline muted></video>
@@ -32,26 +28,35 @@
 
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-        <a-entity mindar-image-target="targetIndex: 0">
-            <a-video src="#arVideo" width="0.5625" height="1" position="0 0 0" rotation="0 0 0"></a-video>
+        <a-entity id="targetAnchor" mindar-image-target="targetIndex: 0">
+            <a-video id="videoPlane" src="#arVideo" width="1" height="1.442" position="0 0 0" scale="1.01 1.01 1.01"></a-video>
         </a-entity>
     </a-scene>
 
     <script>
         const videoEl = document.querySelector('#arVideo');
-        
-        // This makes sure the video plays and UNMUTES when you tap
-        document.body.addEventListener('click', () => {
-            videoEl.muted = false;
+        const anchor = document.querySelector('#targetAnchor');
+        const overlay = document.querySelector('#overlay');
+
+        // AUTO-PLAY: Triggers immediately when photo is seen
+        anchor.addEventListener("targetFound", () => {
             videoEl.play();
-            document.getElementById('instruction').style.display = 'none';
+            overlay.innerHTML = "Photo Found! ✨";
+            // Hide overlay after 3 seconds
+            setTimeout(() => { overlay.style.display = 'none'; }, 3000);
         });
 
-        // Error checking: Log to the screen if the camera fails
-        window.addEventListener("arjs-video-error", (e) => {
-            alert("Camera Error: Please ensure you are on HTTPS and allowed camera access.");
+        // AUTO-PAUSE: Stops video when camera moves away
+        anchor.addEventListener("targetLost", () => {
+            videoEl.pause();
+            overlay.style.display = 'block';
+            overlay.innerHTML = "Photo Lost. Scan again.";
+        });
+
+        // UNMUTE: User must tap once to enable audio (Browser Security)
+        document.body.addEventListener('click', () => {
+            videoEl.muted = false;
         });
     </script>
 </body>
 </html>
-
